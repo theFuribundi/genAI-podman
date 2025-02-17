@@ -5,7 +5,7 @@ services:
       context: ./podman/ollama
       dockerfile: Dockerfile  # Or whatever you name it
     ports:
-      - "8080:8080"
+      - "11434:11434"
     deploy:
       resources:
         reservations:
@@ -24,7 +24,7 @@ services:
       - ollama
       - neo4j
     environment:
-      OLLAMA_BASE_URL: http://ollama:8080
+      OLLAMA_BASE_URL: http://ollama:11434
       NEO4J_URI: bolt://neo4j:7687 # If needed
       NEO4J_USERNAME: neo4j # If needed
       NEO4J_PASSWORD: your_neo4j_password # If needed
