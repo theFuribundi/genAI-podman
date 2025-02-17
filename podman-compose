@@ -1,0 +1,68 @@
+version: "3.9"
+services:
+  ollama:
+    build:
+      context: ./podman/ollama
+      dockerfile: Dockerfile  # Or whatever you name it
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ollama_models:/app/models
+
+  langchain:
+    build:
+      context: ./podman/langchain
+      dockerfile: Dockerfile
+    depends_on:
+      - ollama
+      - neo4j
+    environment:
+      OLLAMA_BASE_URL: http://ollama:8080
+      NEO4J_URI: bolt://neo4j:7687 # If needed
+      NEO4J_USERNAME: neo4j # If needed
+      NEO4J_PASSWORD: your_neo4j_password # If needed
+    volumes:
+      - ./podman/langchain/your_langchain_script.py:/app/your_langchain_script.py # Mount your script
+      - ./podman/langchain/requirements.txt:/app/requirements.txt
+
+  openwebui:
+    build:
+      context: ./podman/openwebui
+      dockerfile: Dockerfile
+    ports:
+      - "7860:7860"
+    depends_on:
+      - ollama # If needed
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - webui_models:/home/user/src/stable-diffusion-webui/models/Stable-diffusion
+      - webui_configs:/home/user/src/stable-diffusion-webui/configs
+
+  neo4j:
+    build:
+      context: ./podman/neo4j
+      dockerfile: Dockerfile
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+
+volumes:
+  ollama_models:
+  webui_models:
+  webui_configs:
+  neo4j_data:
